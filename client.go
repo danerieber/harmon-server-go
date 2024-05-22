@@ -178,7 +178,6 @@ func (c *Client) readPump() {
 			dbMessage = append(dbMessage, "\n"...)
 			dbAppend("chat_messages", "global", []byte(dbMessage))
 		} else if message.Action == ChangeUsernameAction {
-
 			// Parse and validate username
 			r := ChangeUsername{}
 			if json.Unmarshal(message.Data, &r) != nil {
@@ -202,6 +201,9 @@ func (c *Client) readPump() {
 			// Save new username and delete old one
 			dbWrite("username_to_user_id", r.Username, []byte(message.UserId))
 			dbDelete("username_to_user_id", user.Username)
+			if !user.ChangedUsername {
+				user.ChangedUsername = (user.Username != r.Username)
+			}
 			user.Username = r.Username
 			userText, _ = json.Marshal(user)
 			dbWrite("user", message.UserId, userText)
@@ -284,10 +286,18 @@ func (c *Client) readPump() {
 			if presence, ok := presences.Load(message.UserId); ok {
 				user.Presence = presence.(uint8)
 			}
-			user.Status = r.Status
-			user.Icon = r.Icon
-			user.BannerUrl = r.BannerUrl
-			user.UsernameColor = r.UsernameColor
+			if r.Status != "" {
+				user.Status = r.Status
+			}
+			if r.Status != "" {
+				user.Icon = r.Icon
+			}
+			if r.BannerUrl != "" {
+				user.BannerUrl = r.BannerUrl
+			}
+			if r.UsernameColor != "" {
+				user.UsernameColor = r.UsernameColor
+			}
 
 			if updatedUserText, err := json.Marshal(user); err == nil {
 				dbWrite("user", message.UserId, updatedUserText)

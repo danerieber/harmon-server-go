@@ -31,12 +31,13 @@ type Message struct {
 }
 
 type User struct {
-	Username      string `json:"username"`
-	Presence      uint8  `json:"presence"`
-	Status        string `json:"status"`
-	Icon          string `json:"icon"`
-	BannerUrl     string `json:"bannerUrl"`
-	UsernameColor string `json:"usernameColor"`
+	Username        string `json:"username"`
+	Presence        uint8  `json:"presence"`
+	Status          string `json:"status"`
+	Icon            string `json:"icon"`
+	BannerUrl       string `json:"bannerUrl"`
+	UsernameColor   string `json:"usernameColor"`
+	ChangedUsername bool   `json:"changedUsername"`
 }
 
 type NewChatMessage struct {
