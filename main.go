@@ -8,7 +8,6 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
-	"log"
 	"log/slog"
 	"net/http"
 	"os"
@@ -91,8 +90,9 @@ func main() {
 		Addr:              *addr,
 		ReadHeaderTimeout: 3 * time.Second,
 	}
+	myslog.Info("Listening on :8080")
 	err := server.ListenAndServe()
 	if err != nil {
-		log.Fatal("ListenAndServe: ", err)
+		myslog.Error("ListenAndServe Error", "err", err)
 	}
 }
