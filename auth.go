@@ -77,9 +77,6 @@ func login(token string) (sessionToken string, ok bool) {
 }
 
 func getToken(sessionToken string) string {
-	if sessionToken == "dev" {
-		return "developer"
-	}
 	if token, ok := activeSessionTokens[sessionToken]; ok {
 		return token
 	}

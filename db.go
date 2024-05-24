@@ -16,6 +16,7 @@ func dbInit() {
 	os.Mkdir(DataDir+"/username_to_user_id", dbPerm)
 	os.Mkdir(DataDir+"/user", dbPerm)
 	os.Mkdir(DataDir+"/chat_messages", dbPerm)
+	os.Mkdir(DataDir+"/image", dbPerm)
 }
 
 func dbTablePath(table string) string {

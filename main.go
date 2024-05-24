@@ -8,10 +8,14 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	"io"
 	"log/slog"
 	"net/http"
 	"os"
+	"strings"
 	"time"
+
+	"github.com/google/uuid"
 )
 
 type LoginRequestBody struct {
@@ -71,6 +75,48 @@ func serveHome(w http.ResponseWriter, r *http.Request) {
 		token := register()
 		fmt.Fprintf(w, `{"token":"`+token+`"}`)
 		myslog.Info("register", "token", token)
+		return
+	}
+	if strings.HasPrefix(r.URL.Path, "/image") {
+		split := strings.Split(r.URL.Path, "/")
+		if len(split) == 3 {
+			fileName := split[2]
+			if r.Method == http.MethodGet {
+				if data, ok := dbRead("image", fileName); ok {
+					w.Write(data)
+					return
+				}
+				http.Error(w, "not found", http.StatusNotFound)
+			} else if r.Method == http.MethodPost {
+				split = strings.Split(fileName, ".")
+				fileExt := ""
+				if len(split) > 1 {
+					fileExt = split[len(split)-1]
+				}
+				if sessionToken := r.Header.Get("Authorization"); sessionToken != "" {
+					if token := getToken(sessionToken); token != "" {
+						imageId := uuid.New().String() + "." + fileExt
+						buf, err := io.ReadAll(r.Body)
+						if err == nil && len(buf) > 0 {
+							dbWrite("image", imageId, buf)
+							fmt.Fprintf(w, string(imageId))
+							myslog.Info("image", "imageId", imageId)
+							return
+						} else {
+							http.Error(w, "failed to read body", http.StatusBadRequest)
+							return
+						}
+					}
+					http.Error(w, "forbidden", http.StatusForbidden)
+					return
+				}
+				http.Error(w, "unauthorized", http.StatusUnauthorized)
+				return
+			}
+			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+			return
+		}
+		http.Error(w, "invalid path", http.StatusBadRequest)
 		return
 	}
 	http.Error(w, "Not found", http.StatusNotFound)
