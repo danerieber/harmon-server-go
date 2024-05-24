@@ -21,3 +21,7 @@ To start the server, simply run
 ```sh
 go run *.go
 ```
+
+# Deployment
+
+See [harmon-deploy](https://github.com/danerieber/harmon-deploy) for examples.
