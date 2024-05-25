@@ -10,7 +10,8 @@ const (
 	UpdateMyUserInfoAction uint8 = 5
 	GetAllUsersAction      uint8 = 6
 	JoinCallAction         uint8 = 7
-	LeaveCallAction        uint8 = 7
+	GetMySettingsAction    uint8 = 8
+	UpdateMySettingsAction uint8 = 9
 )
 
 const (
@@ -69,6 +70,16 @@ type JoinCall struct {
 	PeerId string `json:"peerId"`
 }
 
+type MyAudioSettings struct {
+	EchoCancellation bool `json:"echoCancellation"`
+	NoiseSuppression bool `json:"noiseSuppression"`
+	AutoGainControl  bool `json:"autoGainControl"`
+}
+
+type MySettings struct {
+	AudioSettings MyAudioSettings `json:"audioSettings"`
+}
+
 type Peer struct {
 	UserId string `json:"userId"`
 	PeerId string `json:"peerId"`
@@ -76,8 +87,4 @@ type Peer struct {
 
 type AllPeers struct {
 	Peers []Peer `json:"peer"`
-}
-
-type LeaveCall struct {
-	PeerId string `json:"peerId"`
 }

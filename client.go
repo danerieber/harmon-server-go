@@ -360,6 +360,24 @@ func (c *Client) readPump() {
 			// 	allPeers = append(allPeers, value.([]Peer)...)
 			// 	return true
 			// })
+		} else if message.Action == GetMySettingsAction {
+			broadcast = false
+
+			message.Data, ok = dbRead("settings", message.UserId)
+			if !ok {
+				continue
+			}
+		} else if message.Action == UpdateMySettingsAction {
+			broadcast = false
+
+			// Parse and validate request
+			r := MySettings{}
+			if json.Unmarshal(message.Data, &r) != nil {
+				continue
+			}
+
+			settingsText, _ := json.Marshal(r)
+			dbWrite("settings", message.UserId, settingsText)
 		}
 
 		messageText, _ = json.Marshal(message)
