@@ -35,6 +35,11 @@ var myslog = slog.New(jsonHandler)
 
 func serveHome(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Headers", "Authorization")
+	if r.Method == http.MethodOptions {
+		w.WriteHeader(http.StatusOK)
+		return
+	}
 	if r.URL.Path == "/login" && r.Method == http.MethodPost {
 		body := LoginRequestBody{}
 		err := json.NewDecoder(r.Body).Decode(&body)
@@ -95,7 +100,7 @@ func serveHome(w http.ResponseWriter, r *http.Request) {
 				}
 				if sessionToken := r.Header.Get("Authorization"); sessionToken != "" {
 					if token := getToken(sessionToken); token != "" {
-						imageId := uuid.New().String() + "." + fileExt
+						imageId := uuid.NewString() + "." + fileExt
 						buf, err := io.ReadAll(r.Body)
 						if err == nil && len(buf) > 0 {
 							dbWrite("image", imageId, buf)

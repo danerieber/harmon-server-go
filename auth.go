@@ -30,7 +30,7 @@ func randomUsername() string {
 }
 
 func randomUserId() string {
-	return uuid.New().String()
+	return uuid.NewString()
 }
 
 func randomSessionToken() string {
