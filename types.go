@@ -39,6 +39,7 @@ type User struct {
 	BannerUrl       string `json:"bannerUrl"`
 	UsernameColor   string `json:"usernameColor"`
 	ChangedUsername bool   `json:"changedUsername"`
+	IsDeveloper     bool   `json:"isDeveloper"`
 }
 
 type NewChatMessage struct {

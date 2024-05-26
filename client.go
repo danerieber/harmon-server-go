@@ -64,6 +64,8 @@ var nClients = sync.Map{}
 var presences = sync.Map{}
 var peerMap = sync.Map{}
 
+var developers, _ = dbReadAll("developer")
+
 // readPump pumps messages from the websocket connection to the hub.
 //
 // The application runs readPump in a per-connection goroutine. The application
@@ -235,6 +237,10 @@ func (c *Client) readPump() {
 			} else {
 				user.Presence = OfflinePresence
 			}
+			user.IsDeveloper = false
+			if developers != nil && developers[r.UserId] != nil {
+				user.IsDeveloper = true
+			}
 
 			r.User, _ = json.Marshal(user)
 
@@ -298,6 +304,10 @@ func (c *Client) readPump() {
 			if r.UsernameColor != "" {
 				user.UsernameColor = r.UsernameColor
 			}
+			user.IsDeveloper = false
+			if developers != nil && developers[message.UserId] != nil {
+				user.IsDeveloper = true
+			}
 
 			if updatedUserText, err := json.Marshal(user); err == nil {
 				dbWrite("user", message.UserId, updatedUserText)
@@ -321,6 +331,10 @@ func (c *Client) readPump() {
 							user.Presence = presence.(uint8)
 						} else {
 							user.Presence = OfflinePresence
+						}
+						user.IsDeveloper = false
+						if developers != nil && developers[userId] != nil {
+							user.IsDeveloper = true
 						}
 						r.Users[userId], _ = json.Marshal(user)
 					}
