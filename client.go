@@ -73,6 +73,7 @@ var developers, _ = dbReadAll("developer")
 // reads from this goroutine.
 func (c *Client) readPump() {
 	defer func() {
+		// Detect when a user has 0 connections left and set their status to offline
 		if n, ok := nClients.Load(c.userId); ok {
 			n := n.(int)
 			if n == 1 {
@@ -112,6 +113,7 @@ func (c *Client) readPump() {
 		}
 
 		messageText = bytes.TrimSpace(bytes.Replace(messageText, newline, space, -1))
+
 		// Ensure message has session token
 		incomingMessage := IncomingMessage{}
 		err = json.Unmarshal(messageText, &incomingMessage)
@@ -130,6 +132,8 @@ func (c *Client) readPump() {
 		if !ok {
 			continue
 		}
+
+		// Save this client's userId and increment nClients
 		if c.userId == "" {
 			c.userId = string(userId)
 			if n, ok := nClients.Load(c.userId); ok {
@@ -139,6 +143,8 @@ func (c *Client) readPump() {
 				nClients.Store(c.userId, 1)
 			}
 		}
+
+		// Get this user's infor from the db
 		userText, ok := dbRead("user", string(userId))
 		if !ok {
 			continue
@@ -156,10 +162,12 @@ func (c *Client) readPump() {
 		}
 		message.UserId = string(userId)
 
+		// Save this user's presence as online
 		if _, ok := presences.Load(message.UserId); !ok {
 			presences.Store(message.UserId, OnlinePresence)
 		}
 
+		// Whether or not we should broadcast the message to all clients or only respond to the sender
 		broadcast := true
 
 		// Handle message actions
@@ -192,6 +200,11 @@ func (c *Client) readPump() {
 			// Alphanumeric, a few symbols, no spaces at start/end
 			match, _ := regexp.MatchString("^[A-Za-z0-9!?.,:;()$%*<]+[A-Za-z0-9!?.,:;()$%*< ]+[A-Za-z0-9!?.,:;()$%*<]+$", r.Username)
 			if !match {
+				continue
+			}
+			// Disallow multiple consecutive spaces
+			match, _ = regexp.MatchString(" {2,}", r.Username)
+			if match {
 				continue
 			}
 
@@ -260,6 +273,7 @@ func (c *Client) readPump() {
 				continue
 			}
 
+			// If a start value is not provided, assume we are seeking from the end of the file
 			var offset int64
 			var whence int
 			if r.Start == nil {
@@ -288,8 +302,8 @@ func (c *Client) readPump() {
 
 			if r.Presence > 0 {
 				presences.Store(message.UserId, r.Presence)
-			}
-			if presence, ok := presences.Load(message.UserId); ok {
+				user.Presence = r.Presence
+			} else if presence, ok := presences.Load(message.UserId); ok {
 				user.Presence = presence.(uint8)
 			}
 			if r.Status != "" {

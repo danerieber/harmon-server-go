@@ -32,14 +32,19 @@ type Message struct {
 }
 
 type User struct {
-	Username        string `json:"username"`
-	Presence        uint8  `json:"presence"`
-	Status          string `json:"status"`
-	Icon            string `json:"icon"`
-	BannerUrl       string `json:"bannerUrl"`
-	UsernameColor   string `json:"usernameColor"`
-	ChangedUsername bool   `json:"changedUsername"`
-	IsDeveloper     bool   `json:"isDeveloper"`
+	// Can be changed by UpdateMyUserInfoAction
+	Presence      uint8  `json:"presence"`
+	Status        string `json:"status"`
+	Icon          string `json:"icon"`
+	BannerUrl     string `json:"bannerUrl"`
+	UsernameColor string `json:"usernameColor"`
+
+	// Can be changed by ChangeUsernameAction
+	Username string `json:"username"`
+
+	// Controlled by server
+	ChangedUsername bool `json:"changedUsername"`
+	IsDeveloper     bool `json:"isDeveloper"`
 }
 
 type NewChatMessage struct {
