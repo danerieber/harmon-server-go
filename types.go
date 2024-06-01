@@ -12,6 +12,7 @@ const (
 	JoinCallAction         uint8 = 7
 	GetMySettingsAction    uint8 = 8
 	UpdateMySettingsAction uint8 = 9
+	EditChatMessageAction  uint8 = 10
 )
 
 const (
@@ -47,9 +48,22 @@ type User struct {
 	IsDeveloper     bool `json:"isDeveloper"`
 }
 
+type ChatMessage struct {
+	Content          string `json:"content"`
+	Timestamp        int64  `json:"timestamp"`
+	EditForTimestamp int64  `json:"editForTimestamp"`
+}
+
 type NewChatMessage struct {
-	Content   string `json:"content"`
-	Timestamp string `json:"timestamp"`
+	ChatId string      `json:"chatId"`
+	Data   ChatMessage `json:"data"`
+}
+
+type EditChatMessage struct {
+	ChatId string      `json:"chatId"`
+	Start  int64       `json:"start"`
+	Total  int         `json:"total"`
+	Data   ChatMessage `json:"data"`
 }
 
 type ChangeUsername struct {

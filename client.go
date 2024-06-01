@@ -175,13 +175,16 @@ func (c *Client) readPump() {
 			// Parse and validate new chat message
 			r := NewChatMessage{}
 			err = json.Unmarshal(message.Data, &r)
-			r.Content = strings.TrimSpace(r.Content)
-			if err != nil || r.Content == "" {
+			r.Data.Content = strings.TrimSpace(r.Data.Content)
+			if err != nil || r.Data.Content == "" || r.ChatId == "" {
+				continue
+			}
+			if r.ChatId != "global" && !dbExists("chat_messages", r.ChatId) {
 				continue
 			}
 
-			r.Timestamp = time.Now().Format(time.RFC3339)
-			message.Data, _ = json.Marshal(r)
+			r.Data.Timestamp = time.Now().UnixMilli()
+			message.Data, _ = json.Marshal(r.Data)
 
 			// Save new chat message to db
 			dbMessage, _ := json.Marshal(message)
@@ -406,6 +409,50 @@ func (c *Client) readPump() {
 
 			settingsText, _ := json.Marshal(r)
 			dbWrite("settings", message.UserId, settingsText)
+		} else if message.Action == EditChatMessageAction {
+			r := EditChatMessage{}
+			err = json.Unmarshal(message.Data, &r)
+			r.Data.Content = strings.TrimSpace(r.Data.Content)
+			if err != nil || r.Data.Content == "" || r.ChatId == "" || r.Data.EditForTimestamp == 0 || r.Total == 0 {
+				continue
+			}
+			if _, ok := dbRead("chat_messages", r.ChatId); !ok {
+				continue
+			}
+
+			entries, _, _, ok := dbReadEntries("chat_messages", r.ChatId, r.Start, io.SeekCurrent, r.Total)
+			if !ok {
+				continue
+			}
+			dbMessages := []Message{}
+			if json.Unmarshal(entries, &dbMessages) != nil {
+				continue
+			}
+
+			chatMessage := ChatMessage{}
+			found := false
+			for _, dbMessage := range dbMessages {
+				err = json.Unmarshal(dbMessage.Data, &chatMessage)
+				if err != nil {
+					break
+				}
+				if chatMessage.Timestamp == r.Data.EditForTimestamp && dbMessage.UserId == message.UserId {
+					found = true
+					break
+				}
+			}
+			if !found {
+				continue
+			}
+
+			r.Data.Timestamp = time.Now().UnixMilli()
+
+			message.Data, _ = json.Marshal(r.Data)
+
+			// Save new chat message to db
+			dbMessage, _ := json.Marshal(message)
+			dbMessage = append(dbMessage, "\n"...)
+			dbAppend("chat_messages", "global", []byte(dbMessage))
 		}
 
 		messageText, _ = json.Marshal(message)

@@ -34,6 +34,11 @@ func dbRead(table, key string) (value []byte, ok bool) {
 	return value, err == nil
 }
 
+func dbExists(table, key string) bool {
+	_, err := os.Stat(dbPath(table, key))
+	return err == nil
+}
+
 func dbReadAll(table string) (values map[string]([]byte), ok bool) {
 	files, err := os.ReadDir(dbTablePath(table))
 	if err != nil {
@@ -90,7 +95,7 @@ func dbReadEntries(table, key string, offset int64, whence int, total int) (valu
 		}
 		bytes := scanner.Bytes()
 		end := i + len(bytes)
-		if end >= total {
+		if end > total {
 			break
 		}
 		if len(bytes) > 0 {
@@ -100,7 +105,7 @@ func dbReadEntries(table, key string, offset int64, whence int, total int) (valu
 		i = end + 1
 	}
 	data[i-1] = ']' // Replace very last comma to finish closing array
-	return data[0:i], newOffset, i - 2, true
+	return data[0:i], newOffset, i - 1, true
 }
 
 func dbWrite(table, key string, value []byte) bool {
