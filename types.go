@@ -49,9 +49,11 @@ type User struct {
 }
 
 type ChatMessage struct {
-	Content          string `json:"content"`
-	Timestamp        int64  `json:"timestamp"`
-	EditForTimestamp int64  `json:"editForTimestamp"`
+	Content          string          `json:"content"`
+	Timestamp        int64           `json:"timestamp"`
+	EditForTimestamp int64           `json:"editForTimestamp"`
+	ReplyToUserId    *string         `json:"replyToUserId"`
+	ReplyTo          json.RawMessage `json:"replyTo"`
 }
 
 type NewChatMessage struct {
