@@ -2,7 +2,7 @@
   description = "A simple Go package";
 
   # Nixpkgs / NixOS version to use.
-  inputs.nixpkgs.url = "nixpkgs/nixos-23.11";
+  inputs.nixpkgs.url = "nixpkgs/nixos-24.05";
 
   outputs = { self, nixpkgs }:
     let
@@ -56,7 +56,7 @@
         let pkgs = nixpkgsFor.${system};
         in {
           default = pkgs.mkShell {
-            buildInputs = with pkgs; [ go gopls gotools go-tools ];
+            buildInputs = with pkgs; [ go gopls gotools go-tools postgresql ];
           };
         });
 
